@@ -1,32 +1,92 @@
 var express = require('express');
+const Event = require('../models/events');
 var router = express.Router();
 
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
     // res.send('respond with a resource');
-    res.setHeader('Content-Type', 'application/json');
-    res.json({ message: 'Oier' })
-
+    try {
+        res.setHeader('Content-Type', 'application/json');
+        const events = await Event.find({});
+        res.json(events);
+    } catch (error) {
+        res.statusCode = 500;
+        res.json({ message: 'Houve um erro interno.' })
+    }
 });
 
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    res.json(req.params.id);
+
+    try {
+        const event = await Event.findById(req.params.id);
+        if (!event) {
+            res.statusCode = 404;
+            res.json({ message: 'Evento não encontrado.' });
+            return;
+        }
+        res.json(event);
+    } catch (error) {
+        res.statusCode = 500;
+        res.json(error);
+    }
 })
 
-router.post('/', (req, res, next) => {
+router.post('/', async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    res.json({ message: 'creating' });
+    try {
+        const event = await Event.create(req.body);
+        res.statusCode = 201;
+        res.json(event);
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            res.statusCode = 400;
+            res.json(error);
+        } else {
+            res.statusCode = 500;
+            res.json({ message: 'Houve um erro interno' })
+        }
+    }
+
+
 
 })
 
-router.put('/:id', (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    res.json({ message: 'updating ' + req.params.id });
-})
 
-router.delete('/:id', (req, res, next) => {
+    try {
+        // res.json(req.body)
+        const updatedEvent = await Event.findOneAndUpdate({ _id: req.params.id }, req.body, { runValidators: true });
+        if (!updatedEvent) {
+            res.statusCode = 404;
+            res.json({ message: 'Evento não encontrado.' });
+            return;
+        }
+
+        res.statusCode = 202;
+        res.json({ message: `Evento ${req.params.id} atualizado com sucesso!` });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            res.statusCode = 400;
+            res.json(error);
+        } else {
+            res.json(error);
+            res.statusCode = 500;
+            res.json({ message: 'Houve um erro interno' })
+        }
+    }
+});
+
+router.delete('/:id', async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    res.json({ message: 'deleting ' + req.params.id });
+    try {
+        await Event.findByIdAndDelete(req.params.id);
+        res.statusCode = 204;
+        res.json({ message: `Evento ${req.params.id} excluído com sucesso.` });
+    } catch (error) {
+        res.statusCode = 500;
+        res.json({ message: 'Houve um erro interno' })
+    }
 })
 
 

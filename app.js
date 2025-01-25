@@ -7,6 +7,15 @@ var indexRouter = require('./routes/index');
 var eventsRouter = require('./routes/events');
 var usersRouter = require('./routes/users');
 
+const mongoose = require("mongoose");
+
+const url = 'mongodb://localhost:27017/eventese';
+const connection = mongoose.connect(url);
+connection.then((db) => {
+    console.log('Connected to database');
+});
+
+
 var app = express();
 
 app.use(logger('dev'));
