@@ -15,6 +15,10 @@ connection.then((db) => {
     console.log('Connected to database');
 });
 
+connection.catch((err) => {
+    console.log('Não conseguiu conectar ao banco.');
+})
+
 
 var app = express();
 
