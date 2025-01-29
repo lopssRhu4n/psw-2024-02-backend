@@ -1,6 +1,7 @@
 var express = require('express');
 const Event = require('../models/events');
 var router = express.Router();
+const auth = require('../middleware/auth');
 
 router.get('/', async (req, res, next) => {
     // res.send('respond with a resource');
@@ -31,7 +32,7 @@ router.get('/:id', async (req, res, next) => {
     }
 })
 
-router.post('/', async (req, res, next) => {
+router.post('/', auth.verifyUser, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     try {
         const event = await Event.create(req.body);
@@ -51,7 +52,7 @@ router.post('/', async (req, res, next) => {
 
 })
 
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', auth.verifyUser, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
 
     try {
@@ -77,7 +78,7 @@ router.put('/:id', async (req, res, next) => {
     }
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', auth.verifyUser, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     try {
         await Event.findByIdAndDelete(req.params.id);

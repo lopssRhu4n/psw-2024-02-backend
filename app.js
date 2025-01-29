@@ -1,7 +1,9 @@
+require("dotenv").config(); // Load environment variables at the start
 var express = require('express');
 // var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
 
 var passport = require('passport');
 
@@ -12,7 +14,7 @@ var usersRouter = require('./routes/users');
 
 const mongoose = require("mongoose");
 
-const url = 'mongodb://localhost:27017/eventese';
+const url = process.env.MONGO_URI || 'mongodb://localhost:27017/eventese';
 const connection = mongoose.connect(url);
 connection.then((db) => {
     console.log('Connected to database');
@@ -25,7 +27,15 @@ connection.catch((err) => {
 
 var app = express();
 
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET || "your_secret_key",
+        resave: false,
+        saveUninitialized: false,
+    })
+);
 app.use(passport.initialize());
+app.use(passport.session());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
