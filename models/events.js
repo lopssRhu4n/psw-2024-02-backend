@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 const eventsSchema = mongoose.Schema({
+    user: {
+        type: mongoose.ObjectId,
+        ref: 'User',
+        required: true
+    },
+
     title: {
         type: String,
         required: true,

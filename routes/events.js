@@ -35,7 +35,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', auth.verifyUser, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     try {
-        const event = await Event.create(req.body);
+        const event = await Event.create({ ...req.body, user: req.user._id });
         res.statusCode = 201;
         res.json(event);
     } catch (error) {
@@ -47,33 +47,33 @@ router.post('/', auth.verifyUser, async (req, res, next) => {
             res.json({ message: 'Houve um erro interno' })
         }
     }
-
-
-
-})
+});
 
 router.put('/:id', auth.verifyUser, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-
     try {
-        // res.json(req.body)
-        const updatedEvent = await Event.findOneAndUpdate({ _id: req.params.id }, req.body, { runValidators: true });
+        const updatedEvent = await Event.findOneAndUpdate(
+            { _id: req.params.id, user: req.user._id },
+            { ...req.body },
+            { new: true, runValidators: true }
+        );
         if (!updatedEvent) {
             res.statusCode = 404;
             res.json({ message: 'Evento não encontrado.' });
             return;
         }
-
         res.statusCode = 202;
-        res.json({ message: `Evento ${req.params.id} atualizado com sucesso!` });
+        res.json({ message: `Evento atualizado com sucesso`, event: updatedEvent });
     } catch (error) {
         if (error.name === 'ValidationError') {
             res.statusCode = 400;
             res.json(error);
+            return;
         } else {
             res.json(error);
             res.statusCode = 500;
             res.json({ message: 'Houve um erro interno' })
+            return;
         }
     }
 });
@@ -81,14 +81,24 @@ router.put('/:id', auth.verifyUser, async (req, res, next) => {
 router.delete('/:id', auth.verifyUser, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     try {
+        // await Event.findByIdAndDelete(req.params.id);
+        const event = await Event.findById(req.params.id);
+        if (!event) {
+            return res.status(404).json({ error: "Evento não encontrado." });
+        }
+        if (event.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "Não autorizado: este não é seu evento." });
+        }
+
         await Event.findByIdAndDelete(req.params.id);
+
         res.statusCode = 204;
         res.json({ message: `Evento ${req.params.id} excluído com sucesso.` });
     } catch (error) {
         res.statusCode = 500;
         res.json({ message: 'Houve um erro interno' })
     }
-})
+});
 
 
 module.exports = router;
