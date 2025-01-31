@@ -24,14 +24,15 @@ var opts = {
 
 exports.jwtPassport = passport.use(new jwtStrategy(opts,
     async (jwt_payload, done) => {
-        const user = await User.findOne({ _id: jwt_payload._id });
-        if (user) {
-            return done(null, user);
+        try {
+            const user = await User.findOne({ _id: jwt_payload._id });
+            if (user) {
+                return done(null, user);
+            }
+            return done(null, false);
+        } catch (error) {
+            return done(error, false);
         }
-        if (err) {
-            return done(err, false);
-        }
-        return done(null, false);
     }
 ))
 
