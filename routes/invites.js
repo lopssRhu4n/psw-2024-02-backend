@@ -63,5 +63,53 @@ router.post('/', auth.verifyUser, async (req, res, next) => {
 
 });
 
+router.put('/:id', auth.verifyUser, async (req, res, next) => {
+    try {
+        let invite = await Invite.findById(req.params.id);
+
+        if (!invite) {
+            return res.status(404).json({ error: "Convite não encontrado." });
+        }
+
+
+        const event = await Event.findById(invite.event);
+        // se o usuário não é nem o criador do convite nem o destinatario do convite, não pode atualizar 
+        if (String(req.user._id) !== String(event.user) && String(req.user._id) !== String(invite.user)) {
+            res.status(403).json({ error: "Você não pode realizar atualização neste convite." });
+            return;
+        }
+
+        if (new Date(event.date) <= new Date()) {
+            res.status(400).json({ error: 'O evento já começou e não é possível mais atualizar convites.' });
+            return
+        }
+
+
+        const updatedInvite = await Invite.findOneAndUpdate(
+            { _id: req.params.id },
+            { ...req.body },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedInvite) {
+            return res.status(500).json({ message: 'Houve um erro interno.' });
+        }
+        res.status(202).json({
+            message: 'Convite atualizado com sucesso', invite: updatedInvite
+        });
+
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            res.statusCode = 400;
+            res.json(error);
+            return;
+        }
+        res.status(500).json({ error: "Houve um erro interno." })
+    }
+
+    // Só pode ser feito pelo usuário que criou o convite ou pelo convidado
+
+});
+
 module.exports = router;
 
