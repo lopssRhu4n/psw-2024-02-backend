@@ -11,6 +11,7 @@ var passport = require('passport');
 var indexRouter = require('./routes/index');
 var eventsRouter = require('./routes/events');
 var usersRouter = require('./routes/users');
+var invitesRouter = require('./routes/invites');
 
 const mongoose = require("mongoose");
 
@@ -45,6 +46,7 @@ app.use(cookieParser());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/events', eventsRouter);
+app.use('/invites', invitesRouter);
 
 app.use(function (req, res, next) {
     res.status(404);
