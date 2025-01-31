@@ -111,5 +111,35 @@ router.put('/:id', auth.verifyUser, async (req, res, next) => {
 
 });
 
+router.delete('/:id', auth.verifyUser, async (req, res, next) => {
+    try {
+        const invite = await Invite.findById(req.params.id);
+        if (!invite) {
+            return res.status(404).json({ error: "Convite não encontrado." });
+        }
+        const event = await Event.findById(invite.event);
+        // se o usuário não é nem o criador do convite nem o destinatario do convite, não pode atualizar 
+        if (String(req.user._id) !== String(event.user) && String(req.user._id) !== String(invite.user)) {
+            res.status(403).json({ error: "Você não pode realizar a exclusão deste convite." });
+            return;
+        }
+
+        if (new Date(event.date) <= new Date()) {
+            res.status(400).json({ error: 'O evento já começou e não é possível mais excluir convites.' });
+            return
+        }
+
+        await Invite.findByIdAndDelete(req.params.id);
+        res.status(204);
+        return;
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: "Houve um erro interno." })
+    }
+
+    // Só pode ser feito pelo usuário que criou o convite ou pelo convidado
+});
+
 module.exports = router;
 
