@@ -12,6 +12,7 @@ var indexRouter = require('./routes/index');
 var eventsRouter = require('./routes/events');
 var usersRouter = require('./routes/users');
 var invitesRouter = require('./routes/invites');
+var feedbacksRouter = require('./routes/feedbacks');
 
 const mongoose = require("mongoose");
 
@@ -47,6 +48,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/events', eventsRouter);
 app.use('/invites', invitesRouter);
+app.use('/feedbacks', feedbacksRouter);
 
 app.use(function (req, res, next) {
     res.status(404);
