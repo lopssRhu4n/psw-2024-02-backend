@@ -4,9 +4,11 @@ const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const User = require('../models/users');
 const auth = require('../middleware/auth');
+const upload = require('../multer/multer');
+const fs = require('fs');
+const { route } = require('./events');
 
-/* GET users listing. */
-router.get('/', auth.verifyUser, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const users = await User.find({});
     res.json(users);
@@ -16,11 +18,16 @@ router.get('/', auth.verifyUser, async (req, res, next) => {
   }
 });
 
-router.post('/register', async (req, res) => {
+router.post('/register', upload.single('img'), async (req, res) => {
   var userData = req.body;
   var password = req.body.password;
   delete userData.password;
   try {
+    if (!req.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
+
+    const img = `/uploads/${req.file.filename}`;
+    userData.img = img;
+
     const registeredUser = await User.register(
       new User(userData),
       password,
@@ -33,10 +40,13 @@ router.post('/register', async (req, res) => {
     res.statusCode = 201;
     return res.json({
       token,
-      user: { name: registeredUser.name, _id: registeredUser._id, email: registeredUser.email }
+      user: { name: registeredUser.name, _id: registeredUser._id, email: registeredUser.email, img: registeredUser.img }
     });
 
   } catch (error) {
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
     if (error) {
       if (error.name === 'ValidationError') {
         res.statusCode = 400;
@@ -58,11 +68,21 @@ router.post('/register', async (req, res) => {
 router.post('/login', passport.authenticate('local'), async (req, res) => {
   var token = auth.getToken({ _id: req.user._id });
   res.statusCode = 201;
+  console.log(req.user);
   res.setHeader('Content-Type', 'application/json');
   res.json({
     message: 'Login Successful',
-    token
+    token,
+    user: {
+      _id: req.user._id,
+      email: req.user.email,
+      img: req.user.img
+    }
   });
 });
+
+router.get('/refresh', auth.verifyUser, async (req, res) => {
+  res.json({ user: req.user });
+})
 
 module.exports = router;

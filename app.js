@@ -1,6 +1,6 @@
 require("dotenv").config(); // Load environment variables at the start
 var express = require('express');
-// var path = require('path');
+var cors = require('cors');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
@@ -38,6 +38,9 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(cors({
+    origin: 'http://localhost:3000'
+}))
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -49,6 +52,8 @@ app.use('/users', usersRouter);
 app.use('/events', eventsRouter);
 app.use('/invites', invitesRouter);
 app.use('/feedbacks', feedbacksRouter);
+app.use("/uploads", express.static('uploads'));
+
 
 app.use(function (req, res, next) {
     res.status(404);
