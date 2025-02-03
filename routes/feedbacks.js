@@ -152,7 +152,7 @@ router.delete('/:id', auth.verifyUser, async (req, res, next) => {
 
         await Feedback.findByIdAndDelete(req.params.id);
 
-        res.status(204).json({});
+        res.status(201).json({ _id: feedback._id });
         return;
 
     } catch (error) {
