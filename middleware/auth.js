@@ -25,15 +25,32 @@ var opts = {
 exports.jwtPassport = passport.use(new jwtStrategy(opts,
     async (jwt_payload, done) => {
         try {
+            console.log('oi')
             const user = await User.findOne({ _id: jwt_payload._id });
             if (user) {
                 return done(null, user);
             }
-            return done(null, false);
+            return done(null, false, { message: 'Não foi possível logar' });
         } catch (error) {
+            console.log(error)
+            if (err instanceof jwt.TokenExpiredError) {
+                return done(null, false, { message: "Token expirado. Faça login novamente." });
+            }
             return done(error, false);
         }
     }
 ))
 
-exports.verifyUser = passport.authenticate('jwt', { session: false });
+exports.verifyUser =
+    (req, res, next) => {
+        passport.authenticate('jwt', { session: false }, (err, user, info) => {
+            if (err) return res.status(500).json({ error: "Erro no servidor" });
+
+            if (!user) {
+                const errorMessage = info?.message || "Não autorizado";
+                return res.status(401).json({ error: errorMessage });
+            }
+            req.user = user;
+            next();
+        })(req, res, next);
+    }
