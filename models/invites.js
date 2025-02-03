@@ -21,8 +21,8 @@ const InviteSchema = new mongoose.Schema({
     },
     text: {
         type: String,
-        required: [true, "Text is required."],
-        minlength: [8, "Text must be at least 8 characters long."],
+        // required: [true, "Text is required."],
+        // minlength: [8, "Text must be at least 8 characters long."],
     },
     status: {
         type: String,
