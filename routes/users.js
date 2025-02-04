@@ -33,7 +33,7 @@ router.post('/register', upload.single('img'), async (req, res) => {
       password,
     );
 
-    const token = jwt.sign({ id: registeredUser._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ _id: registeredUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1h", // Token expiration
     });
 

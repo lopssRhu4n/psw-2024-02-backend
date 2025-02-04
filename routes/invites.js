@@ -130,7 +130,7 @@ router.delete('/:id', auth.verifyUser, async (req, res, next) => {
         }
 
         await Invite.findByIdAndDelete(req.params.id);
-        res.status(204);
+        res.status(202).json({ message: 'Deletado com sucesso!', _id: invite._id });
         return;
 
     } catch (error) {

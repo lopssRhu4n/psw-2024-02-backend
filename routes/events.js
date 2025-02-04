@@ -121,8 +121,8 @@ router.delete('/:id', auth.verifyUser, async (req, res, next) => {
 
         await Event.findByIdAndDelete(req.params.id);
 
-        res.statusCode = 204;
-        res.json({ message: `Evento ${req.params.id} excluído com sucesso.` });
+        res.statusCode = 202;
+        res.json({ message: `Evento ${req.params.id} excluído com sucesso.`, _id: event._id });
     } catch (error) {
         res.statusCode = 500;
         res.json({ message: 'Houve um erro interno' })

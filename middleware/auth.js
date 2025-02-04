@@ -25,11 +25,11 @@ var opts = {
 exports.jwtPassport = passport.use(new jwtStrategy(opts,
     async (jwt_payload, done) => {
         try {
-            console.log('oi')
             const user = await User.findOne({ _id: jwt_payload._id });
             if (user) {
                 return done(null, user);
             }
+            console.log(jwt_payload._id)
             return done(null, false, { message: 'Não foi possível logar' });
         } catch (error) {
             console.log(error)
