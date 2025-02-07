@@ -4,7 +4,7 @@ var cors = require('cors');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
-
+var sse = require('./middleware/sse');
 var passport = require('passport');
 
 
@@ -53,6 +53,33 @@ app.use('/events', eventsRouter);
 app.use('/invites', invitesRouter);
 app.use('/feedbacks', feedbacksRouter);
 app.use("/uploads", express.static('uploads'));
+
+let clients = [];
+
+app.get("/subscribe", (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    // console.log('subscribed');
+    // console.log(res)
+    clients.push(res);
+    req.on("close", () => {
+        clients = clients.filter(client => client !== res);
+    });
+})
+
+const eventChangeStream = require('./models/events').watch();
+eventChangeStream.on('change', (change) => sse({ collection: 'events' }, clients));
+
+const feedbackChangeStream = require('./models/feedbacks').watch();
+feedbackChangeStream.on('change', (change) => sse({ collection: 'feedbacks' }, clients));
+
+const invitesChangeStream = require('./models/invites').watch();
+invitesChangeStream.on('change', (change) => sse({ collection: 'invites' }, clients));
+
+const usersChangeStream = require('./models/users').watch();
+usersChangeStream.on('change', (change) => sse({ collection: 'users' }, clients));
 
 
 app.use(function (req, res, next) {
